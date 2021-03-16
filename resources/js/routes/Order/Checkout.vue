@@ -127,7 +127,7 @@
                     </div>
                 </div>
             </div>
-            <!-- <div class="flex flex-wrap -mx-2 mt-4">
+            <div class="flex flex-wrap -mx-2 mt-4">
                 <div class="p-2 w-full">
                     <div class="relative">
                         <label for="card-element" class="leading-7 text-sm text-gray-600">Credit Card Info</label>
@@ -142,14 +142,17 @@
                     :disabled="paymentProcessing"
                     v-text="paymentProcessing ? 'Processing' : 'Pay Now'"
                 ></button>
-            </div> -->
+            </div>
         </div>
     </div>
 </template>
 <script>
+import { loadStripe } from '@stripe/stripe-js';
 export default {
   data() {
     return {
+        stripe: {},
+        cardElement: {},
       customer: {
         first_name: "",
         last_name: "",
@@ -161,6 +164,19 @@ export default {
       },
       paymentProcessing: false
     }
+  },
+  async mounted() {
+      this.stripe = await loadStripe(process.env.MIX_STRIPE_KEY);
+
+console.log(this.stripe);
+      //generate card element
+      const elements = this.stripe.elements();
+      this.cardElement = elements.create('card',{
+          classes: {
+              base: 'bg-gray-100 rounded border border-gray-300 focus:border-indigo-500 text-base outline-none text-gray-700 p-3 leading-8 transition-colors duration-200 ease-in-out'
+          }
+      });
+    this.cardElement.mount('#card-element');
   },
   computed: {
     cart() {
@@ -192,6 +208,9 @@ export default {
         currency: "KES",
       });
     },
+    processPayment() {
+        //send payment information to laravel + stripe
+    }
   },
 };
 </script>
