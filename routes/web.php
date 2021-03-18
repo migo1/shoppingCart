@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\TestController;
 use Illuminate\Support\Facades\Route;
 
 /*
@@ -13,6 +14,8 @@ use Illuminate\Support\Facades\Route;
 |
 */
 
+// Route::get('test_code',[TestController::class, 'testCode']);
+
 Route::get('/', function () {
     return view('app');
 });
@@ -20,3 +23,5 @@ Route::get('/', function () {
 Route::any('/{any}', function(){
     return view('app');
 })->where('any', '.*');
+
+

@@ -173,13 +173,13 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       stripe: {},
       cardElement: {},
       customer: {
-        first_name: "",
-        last_name: "",
-        email: "",
-        address: "",
-        city: "",
-        state: "",
-        zip_code: ""
+        first_name: '',
+        last_name: '',
+        email: '',
+        address: '',
+        city: '',
+        state: '',
+        zip_code: ''
       },
       paymentProcessing: false
     };
@@ -198,8 +198,6 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
             case 2:
               _this.stripe = _context.sent;
-              console.log(_this.stripe); //generate card element
-
               elements = _this.stripe.elements();
               _this.cardElement = elements.create('card', {
                 classes: {
@@ -209,13 +207,88 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
 
               _this.cardElement.mount('#card-element');
 
-            case 7:
+            case 6:
             case "end":
               return _context.stop();
           }
         }
       }, _callee);
     }))();
+  },
+  methods: {
+    cartLineTotal: function cartLineTotal(item) {
+      var amount = item.price * item.quantity;
+      amount = amount / 100;
+      return amount.toLocaleString('en-US', {
+        style: 'currency',
+        currency: 'KES'
+      });
+    },
+    processPayment: function processPayment() {
+      var _this2 = this;
+
+      return _asyncToGenerator( /*#__PURE__*/_babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.mark(function _callee2() {
+        var _yield$_this2$stripe$, paymentMethod, error;
+
+        return _babel_runtime_regenerator__WEBPACK_IMPORTED_MODULE_0___default.a.wrap(function _callee2$(_context2) {
+          while (1) {
+            switch (_context2.prev = _context2.next) {
+              case 0:
+                _this2.paymentProcessing = true;
+                _context2.next = 3;
+                return _this2.stripe.createPaymentMethod('card', _this2.cardElement, {
+                  billing_details: {
+                    name: _this2.customer.first_name + ' ' + _this2.customer.last_name,
+                    email: _this2.customer.email,
+                    address: {
+                      line1: _this2.customer.address,
+                      city: _this2.customer.city,
+                      state: _this2.customer.state,
+                      postal_code: _this2.customer.zip_code
+                    }
+                  }
+                });
+
+              case 3:
+                _yield$_this2$stripe$ = _context2.sent;
+                paymentMethod = _yield$_this2$stripe$.paymentMethod;
+                error = _yield$_this2$stripe$.error;
+
+                if (error) {
+                  _this2.paymentProcessing = false;
+                  console.error(error);
+                } else {
+                  console.log(paymentMethod);
+                  _this2.customer.payment_method_id = paymentMethod.id;
+                  _this2.customer.amount = _this2.$store.state.cart.reduce(function (acc, item) {
+                    return acc + item.price * item.quantity;
+                  }, 0);
+                  _this2.customer.cart = JSON.stringify(_this2.$store.state.cart);
+                  axios.post('/api/purchase', _this2.customer).then(function (response) {
+                    _this2.paymentProcessing = false;
+                    console.log(response);
+
+                    _this2.$store.commit('updateOrder', response.data);
+
+                    _this2.$store.dispatch('clearCart');
+
+                    _this2.$router.push({
+                      name: 'order.summary'
+                    });
+                  })["catch"](function (error) {
+                    _this2.paymentProcessing = false;
+                    console.error(error);
+                  });
+                }
+
+              case 7:
+              case "end":
+                return _context2.stop();
+            }
+          }
+        }, _callee2);
+      }))();
+    }
   },
   computed: {
     cart: function cart() {
@@ -227,26 +300,14 @@ function _asyncToGenerator(fn) { return function () { var self = this, args = ar
       }, 0);
     },
     cartTotal: function cartTotal() {
-      var price = this.$store.state.cart.reduce(function (acc, item) {
+      var amount = this.$store.state.cart.reduce(function (acc, item) {
         return acc + item.price * item.quantity;
       }, 0);
-      price = price / 100;
-      return price.toLocaleString("en-US", {
-        style: "currency",
-        currency: "KES"
+      amount = amount / 100;
+      return amount.toLocaleString('en-US', {
+        style: 'currency',
+        currency: 'KES'
       });
-    }
-  },
-  methods: {
-    cartLineTotal: function cartLineTotal(item) {
-      var price = item.price * item.quantity;
-      price = price / 100;
-      return price.toLocaleString("en-US", {
-        style: "currency",
-        currency: "KES"
-      });
-    },
-    processPayment: function processPayment() {//send payment information to laravel + stripe
     }
   }
 });
